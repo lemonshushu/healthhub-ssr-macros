@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # xdotool script (CT)
+# Execution time : 11.705 secs
 
 # Coordinates
 CENTER=(886 1227)
@@ -120,5 +121,21 @@ scroll_pause
 scroll_next 12 $VERY_FAST
 scroll_pause
 scroll_next 12 $VERY_FAST
+
+click_srs3
+sleep 1
+scroll_prev 10 $VERY_FAST
+scroll_pause
+scroll_prev 10 $VERY_FAST
+scroll_pause
+scroll_prev 10 $VERY_FAST
+sleep 1
+scroll_next 10 $FAST
+scroll_pause
+scroll_next 10 $FAST
+scroll_pause
+scroll_next 10 $FAST
+scroll_pause
+scroll_next 10 $FAST
 
 mouse_away

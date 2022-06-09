@@ -1,18 +1,10 @@
 #!/bin/bash
-# xdotool script (CT)
-# Execution time : 60.72 secs
+# xdotool script (US)
+# Execution time : 59.934 secs
 
 # Coordinates
 CENTER=(886 1227)
 SRS1=(126 574)
-SRS2=(215 570)
-SRS3=(314 563)
-SRS4=(418 539)
-SRS5=(489 553)
-SRS6=(581 560)
-SRS7=(700 563)
-SRS8=(822 568)
-SRS9=(896 560)
 AWAY=(2305 859)
 
 # Scroll delays
@@ -28,30 +20,6 @@ click_center() {
 }
 click_srs1() {
     xdotool mousemove --sync ${SRS1[0]} ${SRS1[1]} click 1 click 1
-}
-click_srs2() {
-    xdotool mousemove --sync ${SRS2[0]} ${SRS2[1]} click 1 click 1
-}
-click_srs3() {
-    xdotool mousemove --sync ${SRS3[0]} ${SRS3[1]} click 1 click 1
-}
-click_srs4() {
-    xdotool mousemove --sync ${SRS4[0]} ${SRS4[1]} click 1 click 1
-}
-click_srs5() {
-    xdotool mousemove --sync ${SRS5[0]} ${SRS5[1]} click 1 click 1
-}
-click_srs6() {
-    xdotool mousemove --sync ${SRS6[0]} ${SRS6[1]} click 1 click 1
-}
-click_srs7() {
-    xdotool mousemove --sync ${SRS7[0]} ${SRS7[1]} click 1 click 1
-}
-click_srs8() {
-    xdotool mousemove --sync ${SRS8[0]} ${SRS8[1]} click 1 click 1
-}
-click_srs9() {
-    xdotool mousemove --sync ${SRS9[0]} ${SRS9[1]} click 1 click 1
 }
 
 # $1 : How many times to scroll
@@ -79,10 +47,8 @@ mouse_away() {
 }
 
 click_center
-sleep 2
 
-click_srs5
-sleep 2
+sleep 1
 scroll_next 10 $FAST
 scroll_pause
 scroll_next 10 $FAST
@@ -92,9 +58,7 @@ sleep 1
 scroll_prev 7 $SLOW
 sleep 3
 scroll_next 5 $VERY_SLOW
-sleep 4
 
-click_srs3
 sleep 1
 scroll_next 7 $MED
 sleep 2
@@ -103,32 +67,21 @@ scroll_pause
 scroll_next 10 $FAST
 scroll_pause
 scroll_next 10 $FAST
-sleep 5
+sleep 3
 scroll_prev 5 $VERY_SLOW
-sleep 3
-scroll_prev 10 $MED
-scroll_pause
-scroll_prev 10 $MED
-
-click_srs7
-sleep 2
-scroll_prev 3 $VERY_SLOW
-sleep 2
-scroll_prev 5 $SLOW
-sleep 2
-scroll_prev 10 $FAST
-scroll_pause
-scroll_prev 10 $FAST
-scroll_pause
-scroll_prev 5 $MED
-sleep 3
-
-click_srs1
 sleep 1
-scroll_next 10 $VERY_FAST
+scroll_prev 10 $MED
+scroll_pause
+scroll_prev 10 $MED
 
-click_srs2
-sleep 2
+sleep 1
+scroll_next 10 $FAST
+scroll_pause
+scroll_next 10 $FAST
+scroll_pause
+scroll_next 10 $FAST
+sleep 3
+
 scroll_next 3 $VERY_SLOW
 sleep 3
 scroll_prev 5 $SLOW
@@ -136,15 +89,49 @@ scroll_pause
 scroll_prev 10 $SLOW
 scroll_pause
 scroll_prev 10 $MED
+sleep 4
+scroll_next 10 $FAST
+scroll_pause
+scroll_next 10 $FAST
+scroll_pause
+scroll_next 10 $FAST
+sleep 1
+scroll_prev 7 $SLOW
+sleep 3
+scroll_next 5 $VERY_SLOW
+sleep 5
+
+scroll_next 5 $MED
+sleep 2
+scroll_next 13 $FAST
+scroll_pause
+scroll_next 10 $VERY_FAST
+scroll_pause
+scroll_next 10 $VERY_FAST
+sleep 3
+scroll_prev 10 $VERY_FAST
+sleep 2
+scroll_prev 10 $MED
+scroll_pause
+scroll_prev 5 $SLOW
 sleep 2
 
-click_srs9
-sleep 1
-scroll_next 10 $FAST
-scroll_pause
-scroll_next 10 $FAST
-scroll_pause
-scroll_next 10 $FAST
-sleep 3
+# sleep 1
+# scroll_next 7 $MED
+# sleep 2
+# scroll_next 10 $MED
+# scroll_pause
+# scroll_next 10 $FAST
+# scroll_pause
+# scroll_next 10 $FAST
+# sleep 5
+# scroll_prev 5 $VERY_SLOW
+# sleep 3
+# scroll_prev 10 $MED
+# scroll_pause
+# scroll_prev 10 $MED
+
+# sleep 1
+# scroll_next 10 $VERY_FAST
 
 mouse_away
