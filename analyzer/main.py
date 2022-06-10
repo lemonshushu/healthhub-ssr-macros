@@ -41,7 +41,7 @@ def main(datadir: str):
         else:
             method = "improved"
         print(modality, network_speed, situation, method)
-        process_log(item.path, f"{modality}-{network_speed}-{situation}-{method}.csv")
+        process_log(item.path, f"../csvs/{modality}-{network_speed}-{situation}-{method}.csv")
 
 
 if __name__ == '__main__':
