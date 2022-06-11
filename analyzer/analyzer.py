@@ -75,7 +75,7 @@ def process_one_csv(csv_path, modality, network, situation, algorithm) -> Benchm
     # return BenchmarkResult(size, dataseq, alg, maxtim, total_score / maxtim)
 
 
-def main(datadir):
+def main(datadir, compare_score=False):
     dir_list = os.scandir(datadir)
     # bench_results = pd.DataFrame(columns=["network", "dataseq", "alg", "time", "mean_score"])
     bench_results = {}
@@ -100,41 +100,85 @@ def main(datadir):
         # )
         # bench_results[(network, dataseq, alg)] = bench_result
     # 점수 비교
-    for condition, bench_result in bench_results.items():
-        print(condition, bench_result)
-        # 그림 그리기
-        orignal_df = bench_result["original"].cum_scores
-        improved_df = bench_result["improved"].cum_scores
-        # ax = orignal_df.plot(x="elapsedTime", y="cumint", label="original", color="red")
-        # improved_df.plot(ax=ax, x="elapsedTime", y="cumint", label="improved", color="blue")
-        fig = plt.figure()
-        plot1, = plt.plot(orignal_df["elapsedTime"], orignal_df["cumint"], label="original", color="red")
-        plot2, = plt.plot(improved_df["elapsedTime"], improved_df["cumint"], label="improved", color="blue")
-        plt.ylim(0, 120)
-        plt.legend([plot1, plot2], ["original", "improved"])
-        plt.title("{}-{}-{}".format(condition[0], condition[1], condition[2]))
-        original_full_load_time = bench_result["original"].full_load_time
-        improved_full_load_time = bench_result["improved"].full_load_time
-        original_final_score = bench_result["original"].cum_scores.iloc[-1][1]
-        improved_final_score = bench_result["improved"].cum_scores.iloc[-1][1]
+    if compare_score:
+        for condition, bench_result in bench_results.items():
+            print(condition, bench_result)
+            # 그림 그리기
+            orignal_df = bench_result["original"].cum_scores
+            improved_df = bench_result["improved"].cum_scores
+            # ax = orignal_df.plot(x="elapsedTime", y="cumint", label="original", color="red")
+            # improved_df.plot(ax=ax, x="elapsedTime", y="cumint", label="improved", color="blue")
+            fig = plt.figure()
+            plot1, = plt.plot(orignal_df["elapsedTime"], orignal_df["cumint"], label="original", color="red")
+            plot2, = plt.plot(improved_df["elapsedTime"], improved_df["cumint"], label="improved", color="blue")
+            plt.ylim(0, 120)
+            plt.legend([plot1, plot2], ["original", "improved"])
+            plt.title("{}-{}-{}".format(condition[0], condition[1], condition[2]))
+            original_full_load_time = bench_result["original"].full_load_time
+            improved_full_load_time = bench_result["improved"].full_load_time
+            original_final_score = bench_result["original"].cum_scores.iloc[-1][1]
+            improved_final_score = bench_result["improved"].cum_scores.iloc[-1][1]
 
-        original_indicator = f'original full load ({original_full_load_time:.2f}s, {original_final_score:.2f}pt)'
-        improved_indicator = f'improved full load ({improved_full_load_time:.2f}s, {improved_final_score:.2f}pt)'
-        print(original_indicator, improved_indicator)
-        plt.annotate(original_indicator,
-                     xy=(original_full_load_time, original_final_score),
-                     xytext=(original_full_load_time, original_final_score - 10),
-                     arrowprops=dict(facecolor='red', shrink=0.05))
-        plt.annotate(improved_indicator,
-                     xy=(improved_full_load_time, improved_final_score),
-                     xytext=(improved_full_load_time, improved_final_score + 10),
-                     arrowprops=dict(facecolor='blue', shrink=0.05))
-        plt.xlabel("time (s)")
-        plt.ylabel("score")
+            original_indicator = f'original full load ({original_full_load_time:.2f}s, {original_final_score:.2f}pt)'
+            improved_indicator = f'improved full load ({improved_full_load_time:.2f}s, {improved_final_score:.2f}pt)'
+            print(original_indicator, improved_indicator)
+            plt.annotate(original_indicator,
+                         xy=(original_full_load_time, original_final_score),
+                         xytext=(original_full_load_time, original_final_score - 10),
+                         arrowprops=dict(facecolor='red', shrink=0.05))
+            plt.annotate(improved_indicator,
+                         xy=(improved_full_load_time, improved_final_score),
+                         xytext=(improved_full_load_time, improved_final_score + 10),
+                         arrowprops=dict(facecolor='blue', shrink=0.05))
+            plt.xlabel("time (s)")
+            plt.ylabel("score")
+            plt.tight_layout()
+            # plt.show()
+            plt.savefig(f"../result-figs/{condition[0]}-{condition[1]}-{condition[2]}.png")
+            fig.close()
+
+    network_speeds = {}
+    for condition, bench_result in bench_results.items():
+        modality, network, situation = condition
+        if (modality, situation) not in network_speeds:
+            network_speeds[(modality, situation)] = {}
+        network_speeds[(modality, situation)][network] = (
+            bench_result["original"].full_load_time, bench_result["improved"].full_load_time
+        )
+
+    for condition, network_speeds in network_speeds.items():
+        modality, situation = condition
+        print(modality, situation)
+        network_analysis_result = pd.DataFrame(columns=["network", "alg", "full_load_time"])
+        for network_speed, result in network_speeds.items():
+            network_analysis_result = network_analysis_result.append(
+                {
+                    "network": int(network_speed),
+                    "alg": "original",
+                    "full_load_time": result[0]
+                },
+                ignore_index=True
+            )
+            network_analysis_result = network_analysis_result.append(
+                {
+                    "network": int(network_speed),
+                    "alg": "improved",
+                    "full_load_time": result[1]
+                },
+                ignore_index=True
+            )
+        print(network_analysis_result.to_string())
+        mapping = {speed: i for i, speed in enumerate(sorted(map(int, network_speeds.keys())))}
+        print(mapping)
+        network_analysis_result["alg"] = pd.Categorical(network_analysis_result["alg"],
+                                                        categories=["original", "improved"])
+        network_analysis_result.pivot("network", "alg", "full_load_time").plot(kind="bar")
+        plt.title("{}-{}".format(modality, situation))
+        plt.xlabel("network speed (Mbps)")
+        plt.ylabel("full load time (s)")
         plt.tight_layout()
+        plt.savefig(f"../load_time_figs/{modality}-{situation}.png")
         # plt.show()
-        plt.savefig(f"../result-figs/{condition[0]}-{condition[1]}-{condition[2]}.png")
-        fig.close()
 
     # bench_results["label"] = bench_results["network"] + "-" + bench_results["dataseq"]
     # bench_results["alg"] = pd.Categorical(bench_results["alg"], categories=["before", "after"])
