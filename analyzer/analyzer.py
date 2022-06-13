@@ -111,7 +111,7 @@ def main(datadir, compare_score=False):
             fig = plt.figure()
             plot1, = plt.plot(orignal_df["elapsedTime"], orignal_df["cumint"], label="original", color="red")
             plot2, = plt.plot(improved_df["elapsedTime"], improved_df["cumint"], label="improved", color="blue")
-            plt.ylim(0, 120)
+            plt.ylim(0, 100)
             plt.legend([plot1, plot2], ["original", "improved"])
             plt.title("{}-{}-{}".format(condition[0], condition[1], condition[2]))
             original_full_load_time = bench_result["original"].full_load_time
