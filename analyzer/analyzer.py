@@ -110,32 +110,33 @@ def main(datadir, compare_score=False):
             # improved_df.plot(ax=ax, x="elapsedTime", y="cumint", label="improved", color="blue")
             fig = plt.figure()
             plot1, = plt.plot(orignal_df["elapsedTime"], orignal_df["cumint"], label="original", color="red")
-            plot2, = plt.plot(improved_df["elapsedTime"], improved_df["cumint"], label="improved", color="blue")
+            plot2, = plt.plot(improved_df["elapsedTime"], improved_df["cumint"], label="our", color="blue")
             plt.ylim(0, 100)
-            plt.legend([plot1, plot2], ["original", "improved"])
+            plt.xlim(0, durations[condition[2]]) # situation
+            plt.legend([plot1, plot2], ["original", "ours"])
             plt.title("{}-{}-{}".format(condition[0], condition[1], condition[2]))
             original_full_load_time = bench_result["original"].full_load_time
             improved_full_load_time = bench_result["improved"].full_load_time
             original_final_score = bench_result["original"].cum_scores.iloc[-1][1]
             improved_final_score = bench_result["improved"].cum_scores.iloc[-1][1]
 
-            original_indicator = f'original full load ({original_full_load_time:.2f}s, {original_final_score:.2f}pt)'
-            improved_indicator = f'improved full load ({improved_full_load_time:.2f}s, {improved_final_score:.2f}pt)'
+            original_indicator = f'original algorithm full load ({original_full_load_time:.2f}s, {original_final_score:.2f}pt)'
+            improved_indicator = f'our algorithm full load ({improved_full_load_time:.2f}s, {improved_final_score:.2f}pt)'
             print(original_indicator, improved_indicator)
             plt.annotate(original_indicator,
                          xy=(original_full_load_time, original_final_score),
-                         xytext=(original_full_load_time, original_final_score - 10),
+                         xytext=(original_full_load_time, original_final_score - 30),
                          arrowprops=dict(facecolor='red', shrink=0.05))
             plt.annotate(improved_indicator,
                          xy=(improved_full_load_time, improved_final_score),
-                         xytext=(improved_full_load_time, improved_final_score + 10),
+                         xytext=(improved_full_load_time, improved_final_score -15),
                          arrowprops=dict(facecolor='blue', shrink=0.05))
             plt.xlabel("time (s)")
             plt.ylabel("score")
             plt.tight_layout()
             # plt.show()
             plt.savefig(f"../result-figs/{condition[0]}-{condition[1]}-{condition[2]}.png")
-            fig.close()
+            # fig.close()
 
     network_speeds = {}
     for condition, bench_result in bench_results.items():
@@ -194,4 +195,4 @@ def main(datadir, compare_score=False):
 
 
 if __name__ == "__main__":
-    main("../csvs/")
+    main("../csvs/", compare_score=True)
