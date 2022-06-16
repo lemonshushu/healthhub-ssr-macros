@@ -43,12 +43,20 @@ def process_one_csv(csv_path, modality, network, situation, algorithm) -> Benchm
     df.reset_index(drop=True, inplace=True)
     # print("after drop:", df.to_string())
     df["score"] = 0
-    df.loc[df["method"] == "X", "score"] = -5
-    df.loc[df["method"] == "CSR", "score"] = 0
-    df.loc[df["method"] == "SSR", "score"] = -2
+    df.loc[df["method"] == "X", "score"] = -5 / durations[situation] * 10
+    df.loc[df["method"] == "CSR", "score"] = 0 / durations[situation] * 10
+    df.loc[df["method"] == "SSR", "score"] = -2 / durations[situation] * 10
 
     mintime = df["timestamp"].iloc[0]
     df["elapsedTime"] = (df["timestamp"] - mintime) / 1000
+    timeoutIndex = df.index[df["elapsedTime"] > durations[situation]]
+    if len(timeoutIndex) > 0:
+        timeoutIndex = timeoutIndex[0]
+    else:
+        timeoutIndex = None
+    if timeoutIndex is not None:
+        df.drop(df[timeoutIndex:].index, inplace=True)
+        df.reset_index(drop=True, inplace=True)
     # df.loc[fullLoadIndex:, "score"] = 0
     df["cumint"] = 100 + integrate.cumulative_trapezoid(df.score, x=df.elapsedTime, initial=0)
     df["cumsum"] = df["score"].cumsum()
@@ -231,3 +239,16 @@ if __name__ == "__main__":
         print(r" \\ \hline")
 
     print(r"\end{tabular}")
+
+r"""
+\begin{tabular}{ | c | c | c | c | c | c | c | c | c | c | c | c | c |}
+  \hline
+  & \multicolumn{2}{|c|}{ct-fastscroll}& \multicolumn{2}{|c|}{ct-normal}& \multicolumn{2}{|c|}{mr-fastscroll}& \multicolumn{2}{|c|}{mr-normal}& \multicolumn{2}{|c|}{us-fastscroll}& \multicolumn{2}{|c|}{us-normal} \\ \hline
+  net& original & new & original & new & original & new & original & new & original & new & original & new \\ \hline
+  40 & 60.36 & 90.09 & 99.84 & 98.95 & 59.08 & 60.78 & 52.81 & 95.85 & 77.89 & 93.05 & 100.00 & 99.32  \\   \hline
+  80 & 58.91 & 90.86 & 99.77 & 99.32 & 60.56 & 78.51 & 53.15 & 97.04 & 92.93 & 94.31 & 100.00 & 99.70  \\ \hline
+  120 & 75.04 & 92.05 & 98.79 & 98.97 & 58.44 & 74.72 & 53.64 & 95.39 & 80.30 & 94.20 & 100.00 & 99.37\\  \hline
+  160 & 69.53 & 91.74 & 98.96 & 99.74 & 60.49 & 74.39 & 53.28 & 92.05 & 97.23 & 94.57 & 99.32 & 99.39  \\ \hline
+  200 & 63.15 & 88.78 & 99.76 & 99.50 & 63.47 & 71.18 & 53.45 & 86.57 & 97.48 & 93.41 & 98.21 & 99.35  \\ \hline
+  \end{tabular}
+"""
