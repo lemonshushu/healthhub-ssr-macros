@@ -38,7 +38,7 @@ class BenchmarkResult:
 def process_one_csv(csv_path, modality, network, situation, algorithm) -> BenchmarkResult:
     df = pd.read_csv(csv_path)
     firstRenderIndex = df.index[df["method"] == "firstRender"][0]
-    print("FirstRender index:", firstRenderIndex)
+    # print("FirstRender index:", firstRenderIndex)
     df.drop(df[:firstRenderIndex].index, inplace=True)
     df.reset_index(drop=True, inplace=True)
     # print("after drop:", df.to_string())
@@ -56,9 +56,9 @@ def process_one_csv(csv_path, modality, network, situation, algorithm) -> Benchm
         fullLoadIndex = df.index[df["method"] == "fullLoad"][0]
     except:
         fullLoadIndex = None
-    print("fullLoad index:", fullLoadIndex)
+    # print("fullLoad index:", fullLoadIndex)
     if fullLoadIndex is not None:
-        print("Length: ", len(df["elapsedTime"]))
+        # print("Length: ", len(df["elapsedTime"]))
         fullLoadTime = df["elapsedTime"].iloc[fullLoadIndex]
     else:
         fullLoadTime = durations[situation] + 10  # default value
@@ -82,7 +82,7 @@ def main(datadir, compare_score=False):
     for item in dir_list:
         name = os.path.splitext(item.name)[0]
         modality, network, situation, alg = name.split("-")
-        print(modality, network, situation, alg)
+        # print(modality, network, situation, alg)
         bench_result = process_one_csv(item.path, modality, network, situation, alg)
         if (modality, network, situation) not in bench_results:
             bench_results[(modality, network, situation)] = {}
@@ -112,7 +112,7 @@ def main(datadir, compare_score=False):
             plot1, = plt.plot(orignal_df["elapsedTime"], orignal_df["cumint"], label="original", color="red")
             plot2, = plt.plot(improved_df["elapsedTime"], improved_df["cumint"], label="our", color="blue")
             plt.ylim(0, 100)
-            plt.xlim(0, durations[condition[2]]) # situation
+            plt.xlim(0, durations[condition[2]])  # situation
             plt.legend([plot1, plot2], ["original", "ours"])
             plt.title("{}-{}-{}".format(condition[0], condition[1], condition[2]))
             original_full_load_time = bench_result["original"].full_load_time
@@ -122,14 +122,14 @@ def main(datadir, compare_score=False):
 
             original_indicator = f'original algorithm full load ({original_full_load_time:.2f}s, {original_final_score:.2f}pt)'
             improved_indicator = f'our algorithm full load ({improved_full_load_time:.2f}s, {improved_final_score:.2f}pt)'
-            print(original_indicator, improved_indicator)
+            # print(original_indicator, improved_indicator)
             plt.annotate(original_indicator,
                          xy=(original_full_load_time, original_final_score),
                          xytext=(original_full_load_time, original_final_score - 30),
                          arrowprops=dict(facecolor='red', shrink=0.05))
             plt.annotate(improved_indicator,
                          xy=(improved_full_load_time, improved_final_score),
-                         xytext=(improved_full_load_time, improved_final_score -15),
+                         xytext=(improved_full_load_time, improved_final_score - 15),
                          arrowprops=dict(facecolor='blue', shrink=0.05))
             plt.xlabel("time (s)")
             plt.ylabel("score")
@@ -149,7 +149,7 @@ def main(datadir, compare_score=False):
 
     for condition, network_speeds in network_speeds.items():
         modality, situation = condition
-        print(modality, situation)
+        # print(modality, situation)
         network_analysis_result = pd.DataFrame(columns=["network", "alg", "full_load_time"])
         for network_speed, result in network_speeds.items():
             network_analysis_result = network_analysis_result.append(
@@ -168,9 +168,9 @@ def main(datadir, compare_score=False):
                 },
                 ignore_index=True
             )
-        print(network_analysis_result.to_string())
+        # print(network_analysis_result.to_string())
         mapping = {speed: i for i, speed in enumerate(sorted(map(int, network_speeds.keys())))}
-        print(mapping)
+        # print(mapping)
         network_analysis_result["alg"] = pd.Categorical(network_analysis_result["alg"],
                                                         categories=["original", "improved"])
         network_analysis_result.pivot("network", "alg", "full_load_time").plot(kind="bar")
@@ -180,6 +180,7 @@ def main(datadir, compare_score=False):
         plt.tight_layout()
         plt.savefig(f"../load_time_figs/{modality}-{situation}.png")
         # plt.show()
+    return bench_results
 
     # bench_results["label"] = bench_results["network"] + "-" + bench_results["dataseq"]
     # bench_results["alg"] = pd.Categorical(bench_results["alg"], categories=["before", "after"])
@@ -194,5 +195,39 @@ def main(datadir, compare_score=False):
     # scores = bench_results[labels].mean_score
 
 
+def tex_title(modality, situation):
+    return r"& \multicolumn{2}{|c|}{" + modality + "-" + situation + r"}"
+
+
 if __name__ == "__main__":
-    main("../csvs/", compare_score=True)
+    bench_results = main("../csvs/", compare_score=True)
+    print(bench_results)
+    print("Tex===========")
+    print(r"\begin{tabular}{ | c | c | c | c | c | c | c | c | c | c | c | c | c |}")
+    print(r"\hline")
+    modalities = ["ct", "mr", "us"]
+    situations = ["fastscroll", "normal"]
+    for modality in modalities:
+        for situation in situations:
+            print(tex_title(modality, situation), end='')
+    print(r" \\ \hline")
+    print("network speed(Mbps)", end='')
+    for i in range(len(modalities) * len(situations)):
+        print("& original & new ", end='')
+    print(r"\\ \hline")
+    for network_speed in [40, 80, 120, 160, 200]:
+        print(network_speed, end='')
+        print(r" & ", end='')
+        for modality in modalities:
+            for situation in situations:
+                print(
+                    f"""{bench_results[(modality, str(network_speed), situation)]["original"].cum_scores.iloc[-1][1]:.2f}""",
+                    end='')
+                print(r" & ", end='')
+                print(
+                    f"""{bench_results[(modality, str(network_speed), situation)]["improved"].cum_scores.iloc[-1][1]:.2f}""",
+                    end='')
+                print(r" & ", end='')
+        print(r" \\ \hline")
+
+    print(r"\end{tabular}")
